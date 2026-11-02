@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mảnh Ghép - Mạng Xã Hội Thiện Nguyện & Kết Nối Tương Trợ (Tích hợp AI)</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+            },
+            heart: {
+              50: '#fff1f2',
+              500: '#f43f5e',
+              600: '#e11d48'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- FontAwesome & Google Fonts -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans antialiased min-h-screen">
+
+  <!-- ==================== TOP NAVIGATION ==================== -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 gap-4">
+        
+        <!-- Logo & Slogan (Đổi tên thành MẢNH GHÉP) -->
+        <a href="javascript:void(0)" onclick="setFilter('all')" class="flex items-center gap-3 shrink-0 cursor-pointer group" title="Bấm vào để về trang chủ Mảnh Ghép">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 via-teal-500 to-emerald-400 flex items-center justify-center text-white shadow-md shadow-brand-500/25 group-hover:scale-105 transition transform">
+            <i class="fa-solid fa-puzzle-piece text-xl"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xl font-black bg-gradient-to-r from-brand-700 via-teal-700 to-emerald-600 bg-clip-text text-transparent tracking-tight">MẢNH GHÉP</span>
+              <span class="text-[10px] bg-brand-100 text-brand-700 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider flex items-center gap-1 border border-brand-200">
+                <i class="fa-solid fa-microchip text-[9px]"></i> AI Powered
+              </span>
+            </div>
+            <p class="text-xs text-slate-500 hidden sm:block">Gắn kết yêu thương - Tìm mảnh ghép sẻ chia</p>
+          </div>
+        </a>
+
+        <!-- Smart Search Bar with AI Keyword Learning -->
+        <div class="flex-1 max-w-xl relative">
+          <div class="relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+            <input 
+              type="text" 
+              id="globalSearchInput"
+              placeholder="Tìm kiếm: 'quần áo cũ', 'xe lăn', 'sách vở', 'Hoài Đức'..." 
+              class="w-full bg-slate-100/80 hover:bg-slate-100 focus:bg-white text-sm pl-10 pr-24 py-2 rounded-full border border-transparent focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition-all outline-none"
+            >
+            <div class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              <span id="aiSearchBadge" class="hidden sm:inline-flex items-center gap-1 text-[11px] bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full font-medium border border-teal-200">
+                <i class="fa-solid fa-sparkles text-[9px] text-amber-500"></i> AI Lọc
+              </span>
+            </div>
+          </div>
+
+          <!-- Search Suggestion Dropdown -->
+          <div id="searchSuggestions" class="hidden absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-slate-200 p-3 z-50 animate-fadeIn">
+            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider px-2 mb-2 flex justify-between items-center">
+              <span>Gợi ý tìm kiếm phổ biến</span>
+              <span class="text-brand-600 text-[11px] font-normal cursor-pointer hover:underline" onclick="clearSearchHistory()">Xóa lịch sử</span>
+            </div>
+            <div class="flex flex-wrap gap-1.5 mb-2" id="quickSearchChips">
+              <button onclick="quickSearch('Quần áo cũ')" class="px-2.5 py-1 text-xs rounded-full bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 transition">👕 Quần áo cũ</button>
+              <button onclick="quickSearch('Sách giáo khoa')" class="px-2.5 py-1 text-xs rounded-full bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 transition">📚 Sách giáo khoa</button>
+              <button onclick="quickSearch('Xe lăn y tế')" class="px-2.5 py-1 text-xs rounded-full bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 transition">🦼 Xe lăn y tế</button>
+              <button onclick="quickSearch('Hoài Đức Hà Nội')" class="px-2.5 py-1 text-xs rounded-full bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 transition">📍 Khu vực Hoài Đức</button>
+              <button onclick="quickSearch('Tổ chức gom đồ')" class="px-2.5 py-1 text-xs rounded-full bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 transition">🤝 Tổ chức gom đồ</button>
+            </div>
+            <div class="p-2 bg-amber-50 rounded-xl text-xs text-amber-800 flex items-start gap-2 border border-amber-200">
+              <i class="fa-solid fa-lightbulb text-amber-600 mt-0.5"></i>
+              <span><b>Mẹo AI:</b> Khi bạn tìm kiếm (ví dụ <i>"quần áo cũ"</i>), AI sẽ tự động học sở thích. Khi muốn trở lại trang chủ ban đầu, chỉ cần bấm <b>"Tất cả bài viết"</b>!</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- User Controls / Auth Status -->
+        <div class="flex items-center gap-2 sm:gap-3">
+          
+          <!-- Post Creation Quick Button -->
+          <button 
+            onclick="handleCreatePostClick()" 
+            class="hidden md:inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-4 py-2 rounded-full shadow-sm shadow-brand-600/30 transition transform active:scale-95"
+          >
+            <i class="fa-solid fa-plus-circle"></i>
+            <span>Đăng bài mới</span>
+          </button>
+
+          <!-- Notifications with AI Alert badge -->
+          <div class="relative">
+            <button onclick="toggleNotificationDropdown()" class="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition relative">
+              <i class="fa-regular fa-bell text-lg"></i>
+              <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-rose-500 rounded-full ring-2 ring-white"></span>
+            </button>
+
+            <!-- Notifications Dropdown -->
+            <div id="notificationDropdown" class="hidden absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 p-3 z-50 animate-fadeIn">
+              <div class="flex items-center justify-between pb-2 border-b border-slate-100 px-2">
+                <span class="font-bold text-slate-800 text-sm">Thông báo thông minh (AI)</span>
+                <span class="text-xs text-brand-600 cursor-pointer hover:underline">Đã đọc tất cả</span>
+              </div>
+              <div class="space-y-2 mt-2 max-h-80 overflow-y-auto" id="notificationList">
+                <!-- Notifications injected via JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- GUEST VIEW: Nút Đăng nhập / Đăng ký (Hiển thị khi mới mở web) -->
+          <div id="guestAuthNav" class="flex items-center gap-2">
+            <button 
+              onclick="openAuthModal()" 
+              class="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-brand-600 to-teal-600 hover:from-brand-700 hover:to-teal-700 text-white text-xs font-bold shadow-md shadow-brand-600/25 transition transform active:scale-95"
+            >
+              <i class="fa-solid fa-arrow-right-to-bracket text-xs"></i>
+              <span>Đăng nhập / Đăng ký</span>
+            </button>
+          </div>
+
+          <!-- LOGGED-IN VIEW: User Account Pill (Ẩn khi mới mở web, chỉ hiện khi đã đăng nhập) -->
+          <div id="userProfileButton" class="hidden items-center gap-2 p-1.5 sm:px-3 sm:py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-200/60 cursor-pointer transition" onclick="openProfileDropdown()">
+            <img id="headerUserAvatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces" class="w-7 h-7 rounded-full object-cover border border-brand-500" alt="Avatar">
+            <div class="hidden lg:block text-left">
+              <div id="headerUserName" class="text-xs font-bold text-slate-800 leading-tight">Vũ Thu Trang</div>
+              <div id="headerUserRole" class="text-[10px] text-brand-600 font-medium">Người hỗ trợ (Hoài Đức)</div>
+            </div>
+            <i class="fa-solid fa-chevron-down text-slate-400 text-xs hidden sm:block"></i>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN 3-COLUMN CONTAINER ==================== -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      
+      <!-- ==================== LEFT SIDEBAR ==================== -->
+      <aside class="hidden lg:block lg:col-span-3 space-y-5 sticky top-24">
+        
+        <!-- CARD 1A: GUEST WELCOME CARD (Hiển thị khi người dùng chưa đăng nhập) -->
+        <div id="guestSidebarCard" class="bg-gradient-to-br from-white to-slate-50 rounded-2xl p-4 shadow-sm border border-slate-200 text-center space-y-3">
+          <div class="w-12 h-12 mx-auto rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center text-2xl border border-brand-200">
+            <i class="fa-solid fa-puzzle-piece"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 text-sm">Chào mừng đến Mảnh Ghép</h3>
+            <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+              Cộng đồng sẻ chia đồ cũ, tiếp sức hoàn cảnh khó khăn với cam kết bảo mật danh tính tuyệt đối.
+            </p>
+          </div>
+          <button 
+            onclick="openAuthModal()" 
+            class="w-full py-2.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-md shadow-brand-600/20 transition flex items-center justify-center gap-2"
+          >
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>Đăng nhập (Google / SĐT)</span>
+          </button>
+          <div class="text-[11px] text-slate-400 flex items-center justify-center gap-1">
+            <i class="fa-solid fa-lock text-emerald-600"></i>
+            <span>Bảo mật dữ liệu cá nhân 100%</span>
+          </div>
+        </div>
+
+        <!-- CARD 1B: USER AUTHENTICATED PROFILE (Chỉ hiển thị sau khi đã đăng nhập) -->
+        <div id="userSidebarCard" class="hidden bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-3">
+          <div class="flex items-center gap-3">
+            <div class="relative">
+              <img id="leftUserAvatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=faces" class="w-12 h-12 rounded-full object-cover border-2 border-brand-500" alt="User">
+              <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white" title="Đã đăng nhập"></span>
+            </div>
+            <div class="overflow-hidden">
+              <h3 id="leftUserName" class="font-bold text-slate-900 text-sm truncate">Vũ Thu Trang</h3>
+              <p class="text-xs text-slate-500 flex items-center gap-1 truncate">
+                <i class="fa-solid fa-location-dot text-rose-500 text-[10px]"></i>
+                <span id="leftUserLocation">Huyện Hoài Đức, Hà Nội</span>
+              </p>
+              <span class="inline-flex items-center gap-1 text-[10px] text-emerald-700 bg-emerald-50 font-semibold px-2 py-0.5 rounded-full mt-1 border border-emerald-200">
+                <i class="fa-solid fa-shield-halved text-[9px]"></i> Đã bảo mật 100%
+              </span>
+            </div>
+          </div>
+
+          <!-- Privacy Mode Switch -->
+          <div class="bg-slate-50 rounded-xl p-3 border border-slate-200/80 text-xs space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-semibold text-slate-700 flex items-center gap-1.5">
+                <i class="fa-solid fa-user-secret text-slate-600"></i>
+                Chế độ ẩn danh nhạy cảm
+              </span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="anonymousModeToggle" class="sr-only peer" onchange="toggleAnonymousMode(this.checked)">
+                <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600"></div>
+              </label>
+            </div>
+            <p class="text-slate-500 text-[11px] leading-relaxed">
+              Bảo vệ danh tính người nhận trợ giúp. Địa chỉ cụ thể số nhà sẽ được AI ẩn hoàn toàn, chỉ giữ quận/huyện.
+            </p>
+          </div>
+
+          <button onclick="logoutUser()" class="w-full text-center text-xs text-slate-500 hover:text-rose-600 py-1 font-medium transition flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất an toàn
+          </button>
+        </div>
+
+        <!-- Navigation Categories (Có nút "Tất cả bài viết" để quay về trang chủ ban đầu) -->
+        <div class="bg-white rounded-2xl p-3 shadow-sm border border-slate-200">
+          <div class="text-xs font-bold text-slate-400 uppercase tracking-wider px-3 py-2 flex items-center justify-between">
+            <span>Khám phá Bảng Tin</span>
+            <span class="text-[10px] text-slate-400 font-normal">Mảnh Ghép Hub</span>
+          </div>
+          <nav class="space-y-1" id="categoryNav">
+            
+            <!-- NÚT QUAN TRỌNG: Tất cả bài viết -> Xóa tìm kiếm và quay về trang chủ ban đầu -->
+            <button onclick="setFilter('all')" class="category-btn active w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition" data-filter="all" title="Bấm vào để xóa tìm kiếm và quay về trang chủ ban đầu">
+              <span class="flex items-center gap-3">
+                <i class="fa-solid fa-house text-brand-600 w-5 text-center"></i>
+                <span>Tất cả bài viết</span>
+              </span>
+              <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold" id="countAll">--</span>
+            </button>
+
+            <button onclick="setFilter('ai-suggested')" class="category-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-700 hover:bg-brand-50 hover:text-brand-700 transition" data-filter="ai-suggested">
+              <span class="flex items-center gap-3">
+                <i class="fa-solid fa-wand-magic-sparkles text-amber-500 w-5 text-center"></i>
+                <span>AI Đề xuất cho bạn</span>
+              </span>
+              <span class="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold">Mới</span>
+            </button>
+
+            <button onclick="setFilter('nearby')" class="category-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition" data-filter="nearby">
+              <span class="flex items-center gap-3">
+                <i class="fa-solid fa-map-pin text-rose-500 w-5 text-center"></i>
+                <span>Gần tôi (Hoài Đức ~10km)</span>
+              </span>
+              <span class="text-xs bg-rose-50 text-rose-600 px-2 py-0.5 rounded-full font-bold" id="countNearby">--</span>
+            </button>
+
+            <button onclick="setFilter('giveaway')" class="category-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition" data-filter="giveaway">
+              <span class="flex items-center gap-3">
+                <i class="fa-solid fa-gift text-emerald-600 w-5 text-center"></i>
+                <span>Tặng đồ cũ / Quà 0đ</span>
+              </span>
+              <span class="text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-bold" id="countGiveaway">--</span>
+            </button>
+
+            <button onclick="setFilter('help-needed')" class="category-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition" data-filter="help-needed">
+              <span class="flex items-center gap-3">
+                <i class="fa-solid fa-hand-holding-medical text-amber-600 w-5 text-center"></i>
+                <span>Đang cần trợ giúp</span>
+              </span>
+              <span class="text-xs bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full font-bold" id="countHelpNeeded">--</span>
+            </button>
+
+            <button onclick="setFilter('charity-org')" class="category-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition" data-filter="charity-org">
+              <span class="flex items-center gap-3">
+                <i class="fa-solid fa-boxes-packing text-indigo-600 w-5 text-center"></i>
+                <span>Tổ chức gom đồ từ thiện</span>
+              </span>
+              <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full font-bold" id="countCharityOrg">--</span>
+            </button>
+
+            <button onclick="setFilter('campaign')" class="category-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition" data-filter="campaign">
+              <span class="flex items-center gap-3">
+                <i class="fa-solid fa-bullhorn text-red-500 w-5 text-center"></i>
+                <span>Kêu gọi quyên góp lớn</span>
+              </span>
+              <span class="text-xs bg-red-50 text-red-700 px-2 py-0.5 rounded-full font-bold" id="countCampaign">--</span>
+            </button>
+          </nav>
+        </div>
+
+        <!-- Filter By Needs -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+          <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Lọc theo nhu yếu phẩm</div>
+          <div class="flex flex-wrap gap-1.5" id="needTagsFilter">
+            <button onclick="toggleNeedFilter('all')" class="need-chip active px-3 py-1 rounded-full text-xs font-medium bg-brand-600 text-white" data-need="all">Tất cả</button>
+            <button onclick="toggleNeedFilter('Quần áo')" class="need-chip px-3 py-1 rounded-full text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700" data-need="Quần áo">👕 Quần áo</button>
+            <button onclick="toggleNeedFilter('Sách vở')" class="need-chip px-3 py-1 rounded-full text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700" data-need="Sách vở">📚 Sách giáo khoa</button>
+            <button onclick="toggleNeedFilter('Y tế')" class="need-chip px-3 py-1 rounded-full text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700" data-need="Y tế">🦼 Xe lăn/Y tế</button>
+            <button onclick="toggleNeedFilter('Lương thực')" class="need-chip px-3 py-1 rounded-full text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700" data-need="Lương thực">🍚 Thực phẩm</button>
+            <button onclick="toggleNeedFilter('Tài chính')" class="need-chip px-3 py-1 rounded-full text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700" data-need="Tài chính">💰 Viện phí</button>
+            <button onclick="toggleNeedFilter('Đồ gia dụng')" class="need-chip px-3 py-1 rounded-full text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700" data-need="Đồ gia dụng">📦 Đồ gia dụng</button>
+          </div>
+        </div>
+
+        <!-- Safe Community Pledge Banner -->
+        <div class="bg-gradient-to-br from-teal-800 to-slate-900 rounded-2xl p-4 text-white shadow-sm">
+          <div class="flex items-center gap-2 mb-2 text-teal-300 font-bold text-xs uppercase tracking-wider">
+            <i class="fa-solid fa-shield-heart text-sm"></i> Cam Kết Bảo Mật 100%
+          </div>
+          <p class="text-xs text-slate-200 leading-relaxed">
+            Mảnh Ghép sử dụng AI để kiểm duyệt 100% bài đăng, chống bán hàng trá hình, và bảo mật tuyệt đối số nhà cũng như số điện thoại cá nhân.
+          </p>
+        </div>
+
+      </aside>
+
+      <!-- ==================== CENTER FEED ==================== -->
+      <section class="col-span-1 lg:col-span-6 space-y-5">
+        
+        <!-- Post Composer Box -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+          <div class="flex items-center gap-3">
+            <img id="composerUserAvatar" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop" class="w-10 h-10 rounded-full object-cover border border-slate-200" alt="Avatar">
+            <button 
+              onclick="handleCreatePostClick()" 
+              class="flex-1 bg-slate-100 hover:bg-slate-200/80 text-left text-slate-500 text-sm px-4 py-3 rounded-full transition flex items-center justify-between group"
+            >
+              <span>Bạn có đồ muốn cho tặng hay cần trợ giúp hôm nay?</span>
+              <span class="text-xs bg-white text-brand-700 font-semibold px-2.5 py-1 rounded-full border border-slate-200 group-hover:border-brand-300 shadow-2xs flex items-center gap-1">
+                <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i> AI Soạn bài
+              </span>
+            </button>
+          </div>
+
+          <div class="border-t border-slate-100 mt-3 pt-3 flex items-center justify-around text-xs font-semibold text-slate-600">
+            <button onclick="handleCreatePostClick('giveaway')" class="flex items-center gap-2 hover:bg-slate-50 px-3 py-2 rounded-xl transition text-emerald-600">
+              <i class="fa-solid fa-hand-holding-heart text-base"></i>
+              <span>Tặng đồ cũ (0đ)</span>
+            </button>
+            <button onclick="handleCreatePostClick('help-needed')" class="flex items-center gap-2 hover:bg-slate-50 px-3 py-2 rounded-xl transition text-amber-600">
+              <i class="fa-solid fa-hands-holding-child text-base"></i>
+              <span>Cần trợ giúp</span>
+            </button>
+            <button onclick="handleCreatePostClick('charity-org')" class="flex items-center gap-2 hover:bg-slate-50 px-3 py-2 rounded-xl transition text-indigo-600">
+              <i class="fa-solid fa-boxes-stacked text-base"></i>
+              <span>Gom đồ từ thiện</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- AI Intelligent Recommendation Notice Banner -->
+        <div id="aiRecommendationBanner" class="bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 border border-teal-200/80 rounded-2xl p-4 shadow-sm relative overflow-hidden transition-all duration-300">
+          <div class="flex items-start justify-between gap-3 relative z-10">
+            <div class="flex items-start gap-3">
+              <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-teal-500 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+                <i class="fa-solid fa-puzzle-piece text-lg"></i>
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h4 class="font-bold text-slate-900 text-sm">Mảnh Ghép AI Đề Xuất Cá Nhân Hóa</h4>
+                  <span class="text-[10px] bg-brand-600 text-white font-bold px-2 py-0.5 rounded-full">Đang học thói quen</span>
+                </div>
+                <p id="aiBannerDescription" class="text-xs text-slate-600 mt-1 leading-relaxed">
+                  Dựa trên các tìm kiếm gần đây về <b>"Quần áo cũ"</b> và vị trí tại <b>Hoài Đức, Hà Nội</b>, AI Mảnh Ghép đã tự động ưu tiên các bài viết cần nhận hoặc trao tặng đồ ấm gần bạn.
+                </p>
+                <div class="flex items-center gap-2 mt-2">
+                  <span class="text-[11px] font-medium text-slate-500">Từ khóa AI ghi nhận:</span>
+                  <div class="flex gap-1.5 flex-wrap" id="aiLearnedTags">
+                    <span class="text-[11px] bg-white border border-teal-200 text-teal-800 font-semibold px-2 py-0.5 rounded-md">👕 Quần áo ấm</span>
+                    <span class="text-[11px] bg-white border border-teal-200 text-teal-800 font-semibold px-2 py-0.5 rounded-md">📍 Bán kính ~10km</span>
+                    <button onclick="resetAILearning()" class="text-[11px] text-slate-400 hover:text-rose-500 underline ml-1">Đặt lại</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button onclick="dismissAIBanner()" class="text-slate-400 hover:text-slate-600 text-sm p-1">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+          <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-teal-200/40 rounded-full blur-2xl"></div>
+        </div>
+
+        <!-- Search Active Filter Indicator Pill (Hiển thị khi đang tìm kiếm, có nút bấm trở về) -->
+        <div id="searchActiveNotice" class="hidden bg-white rounded-2xl p-3 border border-brand-200 shadow-sm flex items-center justify-between text-xs animate-fadeIn">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-brand-600 animate-ping"></span>
+            <span class="text-slate-600">Đang lọc theo kết quả tìm kiếm: <b id="searchKeywordLabel" class="text-brand-700"></b></span>
+          </div>
+          <button onclick="setFilter('all')" class="px-3 py-1 rounded-full bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold transition flex items-center gap-1.5" title="Xóa tìm kiếm và quay về trang chủ">
+            <i class="fa-solid fa-arrow-rotate-left text-xs"></i>
+            <span>Về "Tất cả bài viết"</span>
+          </button>
+        </div>
+
+        <!-- Feed Quick Tabs -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+          <button onclick="setFilter('all')" class="feed-tab active px-4 py-2 rounded-full text-xs font-bold bg-white text-brand-700 shadow-sm border border-slate-200 whitespace-nowrap" data-tab="all" title="Xem tất cả bài viết trên trang chủ">
+            🔥 Tất cả bài viết
+          </button>
+          <button onclick="setFilter('ai-suggested')" class="feed-tab px-4 py-2 rounded-full text-xs font-bold bg-white text-slate-600 hover:bg-slate-50 shadow-sm border border-slate-200 whitespace-nowrap flex items-center gap-1.5" data-tab="ai-suggested">
+            <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i> AI Gợi ý cho bạn
+          </button>
+          <button onclick="setFilter('nearby')" class="feed-tab px-4 py-2 rounded-full text-xs font-bold bg-white text-slate-600 hover:bg-slate-50 shadow-sm border border-slate-200 whitespace-nowrap" data-tab="nearby">
+            📍 Gần Hoài Đức
+          </button>
+          <button onclick="setFilter('giveaway')" class="feed-tab px-4 py-2 rounded-full text-xs font-bold bg-white text-slate-600 hover:bg-slate-50 shadow-sm border border-slate-200 whitespace-nowrap" data-tab="giveaway">
+            🎁 Cho tặng đồ
+          </button>
+          <button onclick="setFilter('help-needed')" class="feed-tab px-4 py-2 rounded-full text-xs font-bold bg-white text-slate-600 hover:bg-slate-50 shadow-sm border border-slate-200 whitespace-nowrap" data-tab="help-needed">
+            🆘 Cần giúp đỡ
+          </button>
+        </div>
+
+        <!-- POST FEED CONTAINER -->
+        <div id="postsFeedContainer" class="space-y-4">
+          <!-- Posts rendered dynamically via JavaScript -->
+        </div>
+
+        <!-- Empty Feed State -->
+        <div id="emptyFeedState" class="hidden bg-white rounded-2xl p-8 text-center border border-slate-200">
+          <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-slate-400 text-2xl mb-3">
+            <i class="fa-solid fa-puzzle-piece"></i>
+          </div>
+          <h4 class="font-bold text-slate-800 text-base">Chưa tìm thấy mảnh ghép nào phù hợp</h4>
+          <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Hãy bấm vào <b>"Tất cả bài viết"</b> bên cột trái hoặc thanh tab để quay lại trang chủ ban đầu!</p>
+          <button onclick="setFilter('all')" class="mt-4 px-4 py-2 bg-brand-600 text-white rounded-full text-xs font-semibold hover:bg-brand-700 transition flex items-center gap-2 mx-auto">
+            <i class="fa-solid fa-house text-xs"></i>
+            <span>Về Tất cả bài viết</span>
+          </button>
+        </div>
+
+      </section>
+
+      <!-- ==================== RIGHT SIDEBAR ==================== -->
+      <aside class="hidden lg:block lg:col-span-3 space-y-5 sticky top-24">
+        
+        <!-- AI Smart Engine Control Widget -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+          <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
+            <span class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+              <i class="fa-solid fa-robot text-teal-600"></i> AI Mảnh Ghép Điều Hướng
+            </span>
+            <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="AI Đang trực tuyến"></span>
+          </div>
+
+          <div class="space-y-3 text-xs">
+            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200/60">
+              <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Mục tiêu AI cá nhân hóa</span>
+              <p class="text-slate-700 font-medium leading-relaxed">
+                <i class="fa-solid fa-check text-emerald-600 mr-1"></i> Ưu tiên người tặng đồ quanh Hoài Đức
+              </p>
+              <p class="text-slate-700 font-medium leading-relaxed mt-1">
+                <i class="fa-solid fa-check text-emerald-600 mr-1"></i> Lọc trừ 100% bài quảng cáo thương mại
+              </p>
+              <p class="text-slate-700 font-medium leading-relaxed mt-1">
+                <i class="fa-solid fa-check text-emerald-600 mr-1"></i> Tự động che số nhà riêng tư
+              </p>
+            </div>
+
+            <!-- Proximity Radar Simulation -->
+            <div>
+              <div class="flex justify-between items-center text-[11px] mb-1">
+                <span class="text-slate-500 font-medium">Bán kính quét AI xung quanh:</span>
+                <span class="font-bold text-brand-700" id="radiusLabel">10 km</span>
+              </div>
+              <input type="range" min="3" max="50" value="10" id="radiusRange" class="w-full accent-brand-600 cursor-pointer" oninput="updateRadius(this.value)">
+              <div class="flex justify-between text-[10px] text-slate-400 mt-0.5">
+                <span>3 km (Cùng xã)</span>
+                <span>25 km</span>
+                <span>50 km (Toàn thành phố)</span>
+              </div>
+            </div>
+
+            <!-- Test Moderator Tool Trigger -->
+            <button onclick="openAIInspectorTool()" class="w-full py-2 px-3 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 font-semibold text-xs transition flex items-center justify-center gap-2 border border-teal-200">
+              <i class="fa-solid fa-vial-circle-check text-teal-600"></i>
+              <span>Thử nghiệm AI Kiểm duyệt mẫu</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Verified Charity Organizations -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+          <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center justify-between">
+            <span>Tổ chức được xác minh</span>
+            <i class="fa-solid fa-circle-check text-blue-500"></i>
+          </div>
+
+          <div class="space-y-3">
+            <div class="flex items-center gap-3">
+              <img src="https://images.unsplash.com/photo-1593113598332-cd288d649433?w=100&h=100&fit=crop" class="w-10 h-10 rounded-xl object-cover border border-slate-200" alt="Org">
+              <div class="flex-1 overflow-hidden">
+                <h5 class="text-xs font-bold text-slate-900 truncate flex items-center gap-1">
+                  CLB Thiện Nguyện Áo Ấm
+                  <i class="fa-solid fa-circle-check text-[10px] text-blue-500"></i>
+                </h5>
+                <p class="text-[11px] text-slate-500 truncate">Chuyên gom quần áo cho trẻ vùng cao</p>
+                <span class="text-[10px] text-emerald-600 font-semibold">Đã gom 1,200+ bộ quần áo</span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=100&h=100&fit=crop" class="w-10 h-10 rounded-xl object-cover border border-slate-200" alt="Org">
+              <div class="flex-1 overflow-hidden">
+                <h5 class="text-xs font-bold text-slate-900 truncate flex items-center gap-1">
+                  Bếp Ăn Yêu Thương 0đ
+                  <i class="fa-solid fa-circle-check text-blue-500"></i>
+                </h5>
+                <p class="text-[11px] text-slate-500 truncate">Hỗ trợ cơm viện nhi & bệnh viện K</p>
+                <span class="text-[10px] text-emerald-600 font-semibold">500 suất cơm/tuần</span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <img src="https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=100&h=100&fit=crop" class="w-10 h-10 rounded-xl object-cover border border-slate-200" alt="Org">
+              <div class="flex-1 overflow-hidden">
+                <h5 class="text-xs font-bold text-slate-900 truncate flex items-center gap-1">
+                  Quỹ Tiếp Sức Đến Trường
+                  <i class="fa-solid fa-circle-check text-blue-500"></i>
+                </h5>
+                <p class="text-[11px] text-slate-500 truncate">Sách giáo khoa, xe đạp, tập vở cũ</p>
+                <span class="text-[10px] text-emerald-600 font-semibold">Đã trao 340 xe đạp cũ</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Platform Impact Metrics -->
+        <div class="bg-gradient-to-tr from-slate-900 to-teal-950 rounded-2xl p-4 text-white shadow-sm">
+          <span class="text-[10px] uppercase font-bold text-teal-400 tracking-wider">Thống kê tác động Mảnh Ghép</span>
+          <div class="grid grid-cols-2 gap-3 mt-3">
+            <div class="bg-white/10 rounded-xl p-2.5 backdrop-blur-sm">
+              <div class="text-lg font-black text-emerald-300">3,420+</div>
+              <div class="text-[11px] text-slate-300">Món đồ trao tặng</div>
+            </div>
+            <div class="bg-white/10 rounded-xl p-2.5 backdrop-blur-sm">
+              <div class="text-lg font-black text-amber-300">890+</div>
+              <div class="text-[11px] text-slate-300">Mảnh đời tiếp sức</div>
+            </div>
+          </div>
+          <div class="mt-3 pt-2 border-t border-white/10 flex items-center justify-between text-[11px] text-slate-300">
+            <span>Tỷ lệ AI kiểm duyệt sạch:</span>
+            <span class="font-bold text-emerald-400">99.8%</span>
+          </div>
+        </div>
+
+        <!-- Footer quick links -->
+        <div class="text-[11px] text-slate-400 px-2 space-y-1">
+          <div class="flex flex-wrap gap-x-3 gap-y-1">
+            <a href="#" class="hover:underline">Điều khoản Mảnh Ghép</a>
+            <a href="#" class="hover:underline">Chính sách bảo mật AI</a>
+            <a href="#" class="hover:underline">Quy chuẩn cộng đồng</a>
+          </div>
+          <p>© 2026 Mảnh Ghép Platform. Gắn kết những mảnh đời sẻ chia.</p>
+        </div>
+
+      </aside>
+
+    </div>
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL 1: CREATE POST WITH REAL-TIME AI CLASSIFICATION & CONTENT MODERATION -->
+  <!-- ========================================================================= -->
+  <div id="createPostModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden animate-scaleUp">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-brand-100 text-brand-700 flex items-center justify-center font-bold">
+            <i class="fa-solid fa-puzzle-piece"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 text-base">Tạo bài viết sẻ chia trên Mảnh Ghép</h3>
+            <p class="text-[11px] text-slate-500">AI tự động phân loại đối tượng, nhu cầu và kiểm duyệt tức thì</p>
+          </div>
+        </div>
+        <button onclick="closeCreatePostModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Quick Preset Buttons for easy testing -->
+      <div class="px-6 py-2.5 bg-brand-50/60 border-b border-brand-100/60 flex items-center gap-2 overflow-x-auto text-xs">
+        <span class="font-bold text-brand-900 whitespace-nowrap text-[11px]">
+          <i class="fa-solid fa-wand-magic-sparkles text-amber-500 mr-1"></i> Điền nhanh bài test:
+        </span>
+        <button onclick="loadSamplePost('giveaway')" class="px-2.5 py-1 bg-white hover:bg-emerald-100 text-emerald-800 rounded-lg border border-emerald-200 whitespace-nowrap font-medium transition">
+          🎁 Tặng 3 bao quần áo cũ (Hoài Đức)
+        </button>
+        <button onclick="loadSamplePost('help')" class="px-2.5 py-1 bg-white hover:bg-amber-100 text-amber-800 rounded-lg border border-amber-200 whitespace-nowrap font-medium transition">
+          🆘 Cần xin sách giáo khoa lớp 4
+        </button>
+        <button onclick="loadSamplePost('spam')" class="px-2.5 py-1 bg-white hover:bg-rose-100 text-rose-800 rounded-lg border border-rose-200 whitespace-nowrap font-medium transition" title="Thử nghiệm bài vi phạm bán hàng để xem AI từ chối duyệt">
+          🚫 Thử bài Spam/Bán hàng
+        </button>
+      </div>
+
+      <!-- Modal Body Form -->
+      <div class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+        
+        <!-- User Badge & Anonymous Checkbox -->
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <img id="modalUserAvatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces" class="w-10 h-10 rounded-full object-cover border border-slate-200" alt="Avatar">
+            <div>
+              <div class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                <span id="modalUserName">Vũ Thu Trang</span>
+                <span class="text-[10px] bg-slate-100 text-slate-600 font-semibold px-2 py-0.5 rounded-full" id="modalUserRoleBadge">Người hỗ trợ</span>
+              </div>
+              <div class="text-xs text-slate-500 flex items-center gap-1">
+                <i class="fa-solid fa-shield-halved text-emerald-600 text-[10px]"></i>
+                <span>Vị trí chung: <b id="modalUserLocationText">Huyện Hoài Đức, Hà Nội</b></span>
+              </div>
+            </div>
+          </div>
+
+          <label class="flex items-center gap-2 cursor-pointer bg-slate-50 hover:bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 text-xs">
+            <input type="checkbox" id="postAnonymousCheck" class="rounded text-brand-600 focus:ring-brand-500">
+            <span class="text-slate-700 font-medium">Đăng ẩn danh</span>
+          </label>
+        </div>
+
+        <!-- Post Title -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Tiêu đề bài viết</label>
+          <input 
+            type="text" 
+            id="postTitleInput" 
+            placeholder="Ví dụ: Tặng 2 thùng quần áo ấm trẻ em từ 3-8 tuổi hoặc cần xin xe lăn..." 
+            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none text-sm transition"
+            oninput="triggerAIAnalysis()"
+          >
+        </div>
+
+        <!-- Post Content Textarea -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nội dung chi tiết</label>
+          <textarea 
+            id="postContentInput" 
+            rows="4" 
+            placeholder="Mô tả cụ thể món đồ bạn cho tặng hoặc hoàn cảnh cần được giúp đỡ. Đừng ngại chia sẻ rõ tình trạng đồ dùng, cách thức nhận đồ..." 
+            class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none text-sm transition"
+            oninput="triggerAIAnalysis()"
+          ></textarea>
+        </div>
+
+        <!-- Image Attachment Simulator -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Đính kèm ảnh thực tế</label>
+          <div class="flex items-center gap-2">
+            <div class="relative flex-1">
+              <i class="fa-regular fa-image absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+              <input 
+                type="text" 
+                id="postImageUrlInput" 
+                placeholder="Dán link ảnh đồ vật hoặc hoàn cảnh (tùy chọn)" 
+                class="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 focus:border-brand-500 text-xs outline-none"
+                onchange="previewPostImage(this.value)"
+              >
+            </div>
+            <button type="button" onclick="loadRandomItemImage()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-medium whitespace-nowrap transition">
+              <i class="fa-solid fa-dice mr-1"></i> Ảnh mẫu
+            </button>
+          </div>
+          <div id="imagePreviewContainer" class="hidden mt-2 relative rounded-xl overflow-hidden max-h-48 border border-slate-200">
+            <img id="imagePreviewElement" src="" alt="Preview" class="w-full h-48 object-cover">
+            <button onclick="removePostImage()" class="absolute top-2 right-2 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-rose-600 transition">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- ==================== REAL-TIME AI INSPECTOR ==================== -->
+        <div class="bg-gradient-to-br from-slate-900 to-teal-950 rounded-2xl p-4 text-white shadow-md border border-teal-800/50 space-y-3">
+          <div class="flex items-center justify-between border-b border-teal-800/60 pb-2">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-microchip text-teal-400"></i>
+              <span class="font-bold text-xs uppercase tracking-wider text-teal-300">AI Mảnh Ghép: Phân tích & Kiểm duyệt tự động</span>
+            </div>
+            <span id="aiAnalysisStatus" class="text-[11px] bg-teal-500/20 text-teal-300 px-2 py-0.5 rounded-full font-mono">Chờ nhập nội dung...</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+            
+            <div class="bg-white/10 rounded-xl p-2.5 backdrop-blur-sm">
+              <span class="text-slate-400 text-[10px] block mb-1">1. Đối tượng / Vai trò</span>
+              <div id="aiDetectedRole" class="font-bold text-emerald-300 flex items-center gap-1.5">
+                <i class="fa-solid fa-question text-xs text-slate-400"></i>
+                <span>Chưa xác định</span>
+              </div>
+            </div>
+
+            <div class="bg-white/10 rounded-xl p-2.5 backdrop-blur-sm">
+              <span class="text-slate-400 text-[10px] block mb-1">2. Nhu yếu phẩm / Nhu cầu</span>
+              <div id="aiDetectedNeed" class="font-bold text-teal-300 flex items-center gap-1.5">
+                <i class="fa-solid fa-tags text-xs text-slate-400"></i>
+                <span>Chưa nhận diện</span>
+              </div>
+            </div>
+
+            <div class="bg-white/10 rounded-xl p-2.5 backdrop-blur-sm">
+              <span class="text-slate-400 text-[10px] block mb-1">3. Vị trí an toàn (Privacy Mask)</span>
+              <div id="aiDetectedLocation" class="font-bold text-blue-300 flex items-center gap-1.5 truncate">
+                <i class="fa-solid fa-location-dot text-xs text-rose-400"></i>
+                <span>Huyện Hoài Đức, Hà Nội</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Moderation Verdict Box -->
+          <div id="aiModerationVerdict" class="p-3 rounded-xl bg-white/5 border border-white/10 text-xs flex items-start gap-2.5">
+            <i class="fa-solid fa-circle-info text-teal-400 mt-0.5 text-sm"></i>
+            <div>
+              <span class="font-bold text-white block">Trạng thái kiểm duyệt AI:</span>
+              <p class="text-slate-300 text-[11px] leading-relaxed mt-0.5" id="aiVerdictDetail">
+                Hãy nhập nội dung bài viết. AI sẽ kiểm tra tính xác thực, lọc nội dung quảng cáo/bán hàng và đảm bảo chỉ có bài tương trợ thiện nguyện được phê duyệt.
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <button onclick="closeCreatePostModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 transition">
+          Hủy bỏ
+        </button>
+        <button 
+          id="btnPublishPost" 
+          onclick="submitNewPost()" 
+          class="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-full text-xs font-bold shadow-md shadow-brand-600/30 transition transform active:scale-95 flex items-center gap-2"
+        >
+          <i class="fa-solid fa-paper-plane"></i>
+          <span>Đăng bài lên hệ thống</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL 2: USER AUTHENTICATION & PRIVACY MANAGEMENT (Google / Phone OTP) -->
+  <!-- ========================================================================= -->
+  <div id="authModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden animate-scaleUp">
+      
+      <div class="px-6 pt-6 pb-4 text-center border-b border-slate-100 relative">
+        <button onclick="closeAuthModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="w-12 h-12 bg-gradient-to-tr from-brand-600 via-teal-500 to-emerald-400 text-white rounded-2xl flex items-center justify-center mx-auto text-xl shadow-md shadow-brand-500/20 mb-3">
+          <i class="fa-solid fa-puzzle-piece"></i>
+        </div>
+        <h3 class="font-black text-slate-900 text-lg">Đăng Nhập Vào Mảnh Ghép</h3>
+        <p class="text-xs text-slate-500 mt-1">Đảm bảo người dùng thật, cam kết bảo mật 100% dữ liệu cá nhân</p>
+      </div>
+
+      <div class="p-6 space-y-4">
+        
+        <!-- Google Sign-In Button -->
+        <button onclick="simulateGoogleLogin()" class="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-slate-300 hover:bg-slate-50 transition font-semibold text-xs text-slate-700 shadow-2xs group">
+          <svg class="w-4 h-4 group-hover:scale-110 transition" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
+            <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+          </svg>
+          <span>Tiếp tục với Google Account (Đã xác minh)</span>
+        </button>
+
+        <div class="relative flex py-1 items-center">
+          <div class="flex-grow border-t border-slate-200"></div>
+          <span class="flex-shrink mx-3 text-[11px] font-semibold text-slate-400 uppercase">Hoặc số điện thoại</span>
+          <div class="flex-grow border-t border-slate-200"></div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Số điện thoại bảo mật</label>
+          <div class="flex gap-2">
+            <input type="tel" id="authPhoneInput" placeholder="Ví dụ: 0987 123 456" value="0987 654 321" class="flex-1 px-3 py-2 rounded-xl border border-slate-300 text-xs outline-none focus:border-brand-500">
+            <button onclick="simulateSendOTP()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition">
+              Đăng nhập OTP
+            </button>
+          </div>
+          <p class="text-[10px] text-slate-500 mt-1">Số điện thoại chỉ dùng để xác minh người dùng thật, không bao giờ lộ ra ngoài.</p>
+        </div>
+
+        <!-- Privacy Location Area Setting -->
+        <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200/80 space-y-2">
+          <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+            <i class="fa-solid fa-map-location-dot text-brand-600"></i>
+            Khu vực hoạt động của bạn
+          </span>
+          <select id="userLocationSelect" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white outline-none focus:border-brand-500" onchange="updateUserLocation(this.value)">
+            <option value="Huyện Hoài Đức, Hà Nội">Huyện Hoài Đức, Hà Nội (Khu vực mặc định)</option>
+            <option value="Quận Nam Từ Liêm, Hà Nội">Quận Nam Từ Liêm, Hà Nội</option>
+            <option value="Quận Hà Đông, Hà Nội">Quận Hà Đông, Hà Nội</option>
+            <option value="Quận Cầu Giấy, Hà Nội">Quận Cầu Giấy, Hà Nội</option>
+            <option value="Huyện Đan Phượng, Hà Nội">Huyện Đan Phượng, Hà Nội</option>
+            <option value="TP. Hồ Chí Minh">TP. Hồ Chí Minh (Các quận/huyện)</option>
+          </select>
+          <p class="text-[10px] text-slate-500">
+            AI dựa vào khu vực này để đề xuất bài viết gần bạn nhất trong bán kính ưu tiên.
+          </p>
+        </div>
+
+      </div>
+
+      <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+        <span class="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
+          <i class="fa-solid fa-lock text-[9px]"></i> Mã hóa dữ liệu 256-bit
+        </span>
+        <button onclick="closeAuthModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800">
+          Đóng
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL 3: SAFE CONTACT & AID CONNECTION POPUP -->
+  <!-- ========================================================================= -->
+  <div id="contactModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden animate-scaleUp">
+      <div class="p-6">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-handshake-angle text-brand-600 text-lg"></i>
+            <h4 class="font-bold text-slate-900 text-base">Kết Nối Mảnh Ghép Sẻ Chia An Toàn</h4>
+          </div>
+          <button onclick="closeContactModal()" class="text-slate-400 hover:text-slate-600">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div id="contactModalBody" class="py-4 space-y-3">
+          <!-- Injected via JS based on selected post -->
+        </div>
+
+        <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs text-amber-900 space-y-1">
+          <div class="font-bold flex items-center gap-1.5">
+            <i class="fa-solid fa-shield-virus text-amber-700"></i>
+            Khuyến cáo an toàn từ Mảnh Ghép:
+          </div>
+          <p class="text-[11px] leading-relaxed">
+            - Nên hẹn trao đồ tại các điểm công cộng (UBND xã, cổng trường, nhà văn hóa).<br>
+            - Tuyệt đối không chuyển tiền cọc hoặc phí vận chuyển trước cho các tài khoản chưa xác minh.
+          </p>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+          <button onclick="closeContactModal()" class="px-4 py-2 text-xs font-semibold text-slate-600">Đóng</button>
+          <button onclick="confirmSafeConnect()" class="px-5 py-2 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-md shadow-brand-600/20 transition">
+            <i class="fa-regular fa-comment-dots mr-1"></i> Bắt đầu trò chuyện an toàn
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL 4: SHARE POST DIALOG -->
+  <!-- ========================================================================= -->
+  <div id="shareModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 animate-scaleUp">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h4 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+          <i class="fa-solid fa-share-nodes text-brand-600"></i>
+          Lan tỏa mảnh ghép yêu thương
+        </h4>
+        <button onclick="closeShareModal()" class="text-slate-400 hover:text-slate-600">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="py-4 space-y-3">
+        <p class="text-xs text-slate-600">Chia sẻ bài viết này đến các nhóm cộng đồng để người cần giúp sớm nhận được sự hỗ trợ:</p>
+        <div class="flex items-center justify-around py-2">
+          <button onclick="shareToFacebook()" class="flex flex-col items-center gap-1 text-slate-700 hover:text-blue-600 transition">
+            <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-lg"><i class="fa-brands fa-facebook-f"></i></div>
+            <span class="text-[11px] font-medium">Facebook</span>
+          </button>
+          <button onclick="shareToZalo()" class="flex flex-col items-center gap-1 text-slate-700 hover:text-blue-500 transition">
+            <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-lg font-black">Z</div>
+            <span class="text-[11px] font-medium">Zalo</span>
+          </button>
+          <button onclick="copyPostLink()" class="flex flex-col items-center gap-1 text-slate-700 hover:text-brand-600 transition">
+            <div class="w-10 h-10 rounded-full bg-emerald-50 text-brand-600 flex items-center justify-center text-lg"><i class="fa-solid fa-link"></i></div>
+            <span class="text-[11px] font-medium">Sao chép link</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 space-y-2 pointer-events-none"></div>
+
+  <!-- Application Logic Scripts -->
+  <script src="app.js"></script>
+</body>
+</html>
